@@ -54,7 +54,7 @@ static unsigned char CTPM_FW_AUO[] = {
 #define BOE_INI_REQUEST_PATH		"mp_txd_boe.ini"
 #define BOE_FW_REQUEST_PATH		"ILITEK_FW_txd_boe"
 static unsigned char CTPM_FW_BOE[] = {
-	#include "Nokia_QL1838_BOE_639_LongH_V0xCD.0x06.0x00_AP_0x01.0x00_MP_20201028.ili"
+	#include "Nokia_QL1838_BOE_639_LongH_V0xCD.0x07.0x00_AP_0x01.0x00_MP_20201226.ili"
 };
 //txd_boe_sb
 #define BOE_SB_INI_NAME_PATH		"/sdcard/mp_txd_boe_sb.ini"
@@ -62,7 +62,7 @@ static unsigned char CTPM_FW_BOE[] = {
 #define BOE_SB_INI_REQUEST_PATH		"mp_txd_boe_sb.ini"
 #define BOE_SB_FW_REQUEST_PATH		"ILITEK_FW_txd_boe_sb"
 static unsigned char CTPM_FW_BOE_SB[] = {
-	#include "Nokia_QL1838_BOE_639_LongH_V0xCD.0x06.0x00_AP_0x01.0x00_MP_20201028.ili"
+	#include "Nokia_QL1838_BOE_639_LongH_V0xCD.0x07.0x00_AP_0x01.0x00_MP_20201226.ili"
 };
 /* HMD code for DRSTRANGE-234 by zhouzichun at 2020/06/13 end */
 #define INX_INI_NAME_PATH		"/sdcard/mp_inx.ini"

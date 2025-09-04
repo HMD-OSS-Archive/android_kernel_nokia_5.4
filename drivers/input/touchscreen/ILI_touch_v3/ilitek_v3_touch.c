@@ -1281,9 +1281,21 @@ void ili_report_gesture_mode(u8 *buf, int len)
 		gc->clockwise = 1;
 		break;
 	case GESTURE_C:
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/04 start*/
+#if defined (CONFIG_PRODUCT_DRDOOM)
+		ILI_INFO("Gesture C key event , Gesture Code = %d\n", KEY_GESTURE_C);
+		input_report_key(input, KEY_GESTURE_C, 1);
+		input_sync(input);
+		input_report_key(input, KEY_GESTURE_C, 0);
+		input_sync(input);
 		gc->type  = GESTURE_C;
 		gc->clockwise = 1;
+#else
+		gc->type  = GESTURE_C;
+		gc->clockwise = 1;
+#endif
 		break;
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/04 end*/
 	case GESTURE_E:
 		gc->type  = GESTURE_E;
 		gc->clockwise = 1;

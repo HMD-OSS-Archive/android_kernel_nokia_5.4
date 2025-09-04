@@ -191,7 +191,8 @@ static bool get_dload_mode(void)
 {
 	return dload_mode_enabled;
 }
-
+/* DRS code for DRS-914 by zhangyongxu at 2020/05/27 start */
+#ifdef TARGET_BUILD_DEBUG
 static void enable_emergency_dload_mode(void)
 {
 	int ret;
@@ -218,6 +219,8 @@ static void enable_emergency_dload_mode(void)
 	if (ret)
 		pr_err("Failed to set secure EDLOAD mode: %d\n", ret);
 }
+#endif
+/* DRS code for DRS-914 by zhangyongxu at 2020/05/27 end */
 
 static int dload_set(const char *val, const struct kernel_param *kp)
 {
@@ -481,12 +484,21 @@ static void msm_restart_prepare(const char *cmd)
 	set_dload_mode(download_mode &&
 			(in_panic || restart_mode == RESTART_DLOAD));
 
+/* DRS code for DRS-914 by zhangyongxu at 2020/05/27 start */
+#ifdef TARGET_BUILD_DEBUG
 	if (qpnp_pon_check_hard_reset_stored()) {
 		/* Set warm reset as true when device is in dload mode */
 		if (get_dload_mode() ||
 			((cmd != NULL && cmd[0] != '\0') &&
 			!strcmp(cmd, "edl")))
 			need_warm_reset = true;
+#else
+	if (qpnp_pon_check_hard_reset_stored()) {
+		/* Set warm reset as true when device is in dload mode */
+		if (get_dload_mode())
+			need_warm_reset = true;
+#endif
+/* DRS code for DRS-914 by zhangyongxu at 2020/05/27 end */
 	} else {
 		need_warm_reset = (get_dload_mode() ||
 				(cmd != NULL && cmd[0] != '\0'));
@@ -535,7 +547,13 @@ static void msm_restart_prepare(const char *cmd)
 				__raw_writel(0x6f656d00 | (code & 0xff),
 					     restart_reason);
 		} else if (!strncmp(cmd, "edl", 3)) {
+/* DRS code for DRS-914 by zhangyongxu at 2020/05/27 start */
+#ifdef TARGET_BUILD_DEBUG
 			enable_emergency_dload_mode();
+#else
+            pr_err("Do not support reboot to edl now.\n");
+#endif
+/* DRS code for DRS-914 by zhangyongxu at 2020/05/27 end */
 		} else {
 			__raw_writel(0x77665501, restart_reason);
 		}

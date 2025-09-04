@@ -19,7 +19,7 @@
 #include <linux/kdev_t.h>
 
 
-extern struct gendisk *emmc_disk;
+//extern struct gendisk *emmc_disk;
 static struct platform_device *proinfo_pdev;
 static struct device *proinfo_root_dev;
 
@@ -44,11 +44,15 @@ typedef enum{
     WT_PROINFO_ta_code = 16, //Req429166, yiguochao.wt, add, on 20190214
     //+Bug437327,liulai@wingtech.com.wt,ADD,20190419,enable or disable FactoryReset and DownloadMode
     WT_PROINFO_block_fastboot_mode = 17,
-    WT_PROINFO_block_factory_reset = 18
+    WT_PROINFO_block_factory_reset = 18,
+	WT_PROINFO_remote_lock_value = 22,
     //-Bug437327,liulai@wingtech.com.wt,ADD,20190419,enable or disable FactoryReset and DownloadMode
+    WT_PROINFO_factory_reset_time = 23,
 }wt_proinfo_type;
 
+#define WT_PROINFO_FACTORYRESETTIME_STRING_LEN 64
 #define WT_PROINFO_STRING_LEN 30
+#define WT_PROINFO_REMOTE_LOCK_VLAUE_LEN 256
 #define WT_PROINFO_IMEI_LEN 8
 #define SIZE_4K 4096
 
@@ -77,7 +81,7 @@ static ssize_t proinfo_##name##_store(struct device * dev, struct device_attribu
 static ssize_t proinfo_##name##_show(struct device *dev, struct device_attribute *attr, char *buf)\
 {\
 	int ret = -1;\
-	char pbuf[WT_PROINFO_STRING_LEN];\
+	char pbuf[257];\
 	printk("entry  %s\n",__FUNCTION__);\
 \
 	ret = wt_proinfo_read(WT_PROINFO_##name,pbuf);\
@@ -88,6 +92,7 @@ static ssize_t proinfo_##name##_show(struct device *dev, struct device_attribute
 static DEVICE_ATTR(name, 0644, proinfo_##name##_show, proinfo_##name##_store);
 
 //define function
+/*
 WT_PROINFO_CREATE_ATTR(oem_clear)
 WT_PROINFO_CREATE_ATTR(psn)
 WT_PROINFO_CREATE_ATTR(sn)
@@ -102,10 +107,12 @@ WT_PROINFO_CREATE_ATTR(MEID)
 //-Bug 423830,liulai.wt,add for fastboot getvar IMEI0/IMEI1/MEID, 20190109
 WT_PROINFO_CREATE_ATTR(bt)
 WT_PROINFO_CREATE_ATTR(wlan)
-WT_PROINFO_CREATE_ATTR(ta_code) //Req429166, yiguochao.wt, add, on 20190214
+WT_PROINFO_CREATE_ATTR(ta_code) //Req429166, yiguochao.wt, add, on 20190214*/
 //+Bug437327,liulai@wingtech.com.wt,ADD,20190419,enable or disable FactoryReset and DownloadMode
 WT_PROINFO_CREATE_ATTR(block_fastboot_mode)
 WT_PROINFO_CREATE_ATTR(block_factory_reset)
+WT_PROINFO_CREATE_ATTR(remote_lock_value)
+WT_PROINFO_CREATE_ATTR(factory_reset_time)
 //-Bug437327,liulai@wingtech.com.wt,ADD,20190419,enable or disable FactoryReset and DownloadMode
 
 static void hex_to_char(unsigned char* imei_h, unsigned char* imei_c) {
@@ -241,67 +248,37 @@ static int wt_create_device_files(void)
 {
 	int rc = 0;
 
-	rc = device_create_file(proinfo_root_dev, &dev_attr_oem_clear);
-	if (rc)
-		return rc;
-	rc = device_create_file(proinfo_root_dev, &dev_attr_psn);
-	if (rc)
-	 	return rc;
-        rc = device_create_file(proinfo_root_dev, &dev_attr_sn);
-        if (rc)
-                return rc;
-	rc = device_create_file(proinfo_root_dev, &dev_attr_color_id);
-	if (rc)
-		return rc;
-	rc = device_create_file(proinfo_root_dev, &dev_attr_sku_id);
-	if (rc)
-		return rc;
-	rc = device_create_file(proinfo_root_dev, &dev_attr_factoryreset_date);
-	if (rc)
-		return rc;
-	rc = device_create_file(proinfo_root_dev, &dev_attr_build_type);
-	if (rc)
-		return rc;
-        rc = device_create_file(proinfo_root_dev, &dev_attr_bt);
-        if (rc)
-                return rc;
-        rc = device_create_file(proinfo_root_dev, &dev_attr_wlan);
-        if (rc)
-                return rc;
-	//+Req429166, yiguochao.wt, add, on 20190214
-        rc = device_create_file(proinfo_root_dev, &dev_attr_ta_code);
-        if (rc)
-                return rc;
-	//-Req429166, yiguochao.wt, add, on 20190214
-    //+Bug 423830,liulai.wt,add for fastboot getvar IMEI0/IMEI1/MEID, 20190109
-	rc = device_create_file(proinfo_root_dev, &dev_attr_IMEI0);
-	if (rc)
-		return rc;
-	rc = device_create_file(proinfo_root_dev, &dev_attr_IMEI1);
-	if (rc)
-		return rc;
-	rc = device_create_file(proinfo_root_dev, &dev_attr_MEID);
-	if (rc)
-		return rc;
-    //-Bug 423830,liulai.wt,add for fastboot getvar IMEI0/IMEI1/MEID, 20190109
-    //+Bug437327,liulai@wingtech.com.wt,ADD,20190419,enable or disable FactoryReset and DownloadMode
+	//+Bug437327,liulai@wingtech.com.wt,ADD,20190419,enable or disable FactoryReset and DownloadMode
 	rc = device_create_file(proinfo_root_dev, &dev_attr_block_fastboot_mode);
 	if (rc)
 		return rc;
 	rc = device_create_file(proinfo_root_dev, &dev_attr_block_factory_reset);
 	if (rc)
 		return rc;
+	rc = device_create_file(proinfo_root_dev, &dev_attr_remote_lock_value);
+    if (rc) {
+		printk("ERROR: Creating remote_lock_value device file\n");
+        	return rc;
+	}
+	rc = device_create_file(proinfo_root_dev, &dev_attr_factory_reset_time);
+    if (rc) {
+		printk("ERROR: Creating factory_reset_time device file\n");
+    		return rc;
+	}
     //-Bug437327,liulai@wingtech.com.wt,ADD,20190419,enable or disable FactoryReset and DownloadMode
 	return 0;
 }
 
-#define MMC_BLOCK_SIZE (512)
+#define MMC_BLOCK_SIZE (512) //proinfo size is 1024kb
 static dev_t emmc_lookup_partition(const char *part_name, sector_t *start, sector_t *nr_sect)
 {
 	struct disk_part_iter piter;
 	struct hd_struct *part;
- 
-	dev_t devt = MKDEV(0, 0);
+	struct gendisk *emmc_disk;
+	int partno = 0;
+	dev_t devt = MKDEV(MMC_BLOCK_MAJOR, 0);
+	
+	emmc_disk = get_gendisk(devt, &partno);
 	if (!emmc_disk) {
 		printk("[mzss] emmc disk = null\n");
 
@@ -329,9 +306,10 @@ static int emmc_block_rw(int write, sector_t index, void *buffer, size_t len)
 	fmode_t mode = FMODE_READ;
 	int err = -EIO;
  
-	if (len > MMC_BLOCK_SIZE)
+	if (len > MMC_BLOCK_SIZE){
+		printk("[mzss] partition emmc_block_rw  EINVAL!! len = %d\n",len);
 		return -EINVAL;
- 
+	}
 	bdev = bdget(MKDEV(MMC_BLOCK_MAJOR, 0));
 	if (!bdev)
 		return -EIO;
@@ -345,26 +323,37 @@ static int emmc_block_rw(int write, sector_t index, void *buffer, size_t len)
 	set_blocksize(bdev, MMC_BLOCK_SIZE);
  
 	bh = __getblk(bdev, index, MMC_BLOCK_SIZE);
- 
+
 	if (bh) {
 		clear_buffer_uptodate(bh);
+
+
 		get_bh(bh);
+		
+
 		lock_buffer(bh);
+
+
 		bh->b_end_io = end_buffer_read_sync;
-		//submit_bh(REQ_OP_READ, READ_SYNC, bh);
+		submit_bh(REQ_OP_READ, 0, bh);
 		wait_on_buffer(bh);
+		
+
 		pr_err("emmc read sucess!!\n");
+		
 		if (unlikely(!buffer_uptodate(bh))) {
 			pr_err("emmc read error!!\n");
 			goto out;
 		}
+
 		if (write) {
 			lock_buffer(bh);
 			memcpy(bh->b_data, buffer, len);
 			bh->b_end_io = end_buffer_write_sync;
 			get_bh(bh);
-			//submit_bh(REQ_OP_WRITE, WRITE_SYNC, bh);
+			submit_bh(REQ_OP_WRITE, 0, bh);
 			wait_on_buffer(bh);
+
 			pr_err("emmc go to write sucess!!\n");
 			if (unlikely(!buffer_uptodate(bh))) {
 				pr_err("emmc write error!!\n");
@@ -378,7 +367,8 @@ static int emmc_block_rw(int write, sector_t index, void *buffer, size_t len)
 	} else {
 		pr_info("%s error\n", __func__);
 	}
- 
+
+	printk("[mzss] partition emmc_block_rw error = %d\n",err);
 out:
 	brelse(bh);
 	blkdev_put(bdev, mode);
@@ -395,15 +385,18 @@ int emmc_partition_rw(const char *part_name, int write, loff_t offset,void *buff
 	dev_t devt;
 	sector_t start=0, nr_sect=0;
  
+ 	printk("[mzss123]%s: offset(%lld) unalign to (%lld)Byte! result = %d\n", __func__, offset,MMC_BLOCK_SIZE,(offset % MMC_BLOCK_SIZE));
+
 	if (buffer == NULL)
 		return -EINVAL;
-	printk("[mzss123]%s: offset(%lld) unalign to 512Byte!\n", __func__, offset);
+
 	if (offset % MMC_BLOCK_SIZE) {
-		printk("[mzss]%s: offset(%lld) unalign to 512Byte!\n", __func__, offset);
+		printk("[mzss]%s: offset(%lld) unalign to (%lld)Byte! \n", __func__, offset,MMC_BLOCK_SIZE);
 		return -EINVAL;
 	}
  
 	devt = emmc_lookup_partition(part_name, &start, &nr_sect);
+
 	if (!devt) {
 		printk("[mzss]%s: can't find eMMC partition(%s)\n", __func__, part_name);
 		return -ENODEV;
@@ -416,6 +409,7 @@ int emmc_partition_rw(const char *part_name, int write, loff_t offset,void *buff
  
 	index = start + offset / MMC_BLOCK_SIZE;
  
+
 	while (len > 0) {
 		size_t size = len;
  
@@ -433,14 +427,18 @@ int emmc_partition_rw(const char *part_name, int write, loff_t offset,void *buff
 		p += MMC_BLOCK_SIZE;
 	}
  
+	
 	return ret;
 }
 EXPORT_SYMBOL(emmc_partition_rw);
+
+static char temp_buf[SIZE_4K] = { };
 
 static int wt_proinfo_read(wt_proinfo_type type, char* buf)
 {
 	//struct file *fp;
 	char fbuf[WT_PROINFO_STRING_LEN]={0};
+	char fl_buf[257]={0};
 	int ret= 0;
 	int len =0;
 
@@ -477,6 +475,36 @@ static int wt_proinfo_read(wt_proinfo_type type, char* buf)
 			printk("%s read factory[%d] \n", __func__, type);
             ret = emmc_partition_rw("oem",  0, type * SIZE_4K,(char *) fbuf, (unsigned long) WT_PROINFO_STRING_LEN);
 			break;
+		case WT_PROINFO_block_fastboot_mode:
+			printk("%s read block fastboot mode[%d] \n", __func__, type);
+            ret = emmc_partition_rw("proinfo",  0, 1*MMC_BLOCK_SIZE,(char *) fbuf, (unsigned long) WT_PROINFO_STRING_LEN);
+			break;
+		case WT_PROINFO_remote_lock_value:
+            printk("%s mzss123 read remote_lock_value \n", __func__);
+
+            ret = emmc_partition_rw("proinfo", 0, 2*MMC_BLOCK_SIZE, temp_buf, (unsigned long)WT_PROINFO_REMOTE_LOCK_VLAUE_LEN);//SIZE_4K / 8);
+			printk("%s: mzss123 remote_lock_value Read bytes from proinfo! %d, temp_buf = %s ..\n", __func__, ret, temp_buf);
+            if (ret < 0) {
+                printk("%s:mzss123  Read bytes from proinfo failed! %d\n", __func__, ret);
+                return -1;
+            }
+            memcpy(fl_buf, temp_buf, WT_PROINFO_REMOTE_LOCK_VLAUE_LEN);
+            
+            printk("%s,lingyuguo mzss123 remote_lock_value memcpy fl_buf:%s, temp_buf len:%d\n",__func__,fl_buf,WT_PROINFO_REMOTE_LOCK_VLAUE_LEN);
+			break;
+		case WT_PROINFO_factory_reset_time:
+		    printk("%s mzss123 read factory_reset_time \n", __func__);
+
+            ret = emmc_partition_rw("proinfo", 0, 3*MMC_BLOCK_SIZE, temp_buf, (unsigned long)WT_PROINFO_FACTORYRESETTIME_STRING_LEN);//SIZE_4K / 8);
+			printk("%s: mzss123 factory_reset_time Read bytes from proinfo! %d, temp_buf = %s ..\n", __func__, ret, temp_buf);
+            if (ret < 0) {
+                printk("%s:mzss123  Read bytes from proinfo failed! %d\n", __func__, ret);
+                return -1;
+            }
+            memcpy(fl_buf, temp_buf, WT_PROINFO_FACTORYRESETTIME_STRING_LEN);
+            
+            printk("%s,lingyuguo mzss123 factory_reset_time memcpy fl_buf:%s, temp_buf len:%d\n",__func__,fl_buf,WT_PROINFO_FACTORYRESETTIME_STRING_LEN);
+			break;
 		default:
 			// fp->f_pos = fp->f_pos + type * SIZE_4K;
 			// ret = kernel_read(fp, (loff_t) fp->f_pos, (char *) fbuf, (unsigned long) WT_PROINFO_STRING_LEN);
@@ -498,6 +526,31 @@ static int wt_proinfo_read(wt_proinfo_type type, char* buf)
 		filp_close(fp, NULL);
 	}
 	*/
+	
+	if(type == WT_PROINFO_remote_lock_value){
+        len = strlen(fl_buf);
+        
+        printk("%s,lingyuguo mzss123 remote_lock_value strlen fl_buf len:%d\n",__func__,len);
+
+        if(len <= WT_PROINFO_REMOTE_LOCK_VLAUE_LEN){
+            strcpy(buf,fl_buf);
+            printk("%s,lingyuguo mzss123 remote_lock_value read fl_buf:%s, len = %d\n",__func__,buf,len);
+        }
+        return len;
+    }
+    
+    if(type == WT_PROINFO_factory_reset_time){
+        len = strlen(fl_buf);
+        
+        printk("%s,lingyuguo mzss123 factory_reset_time strlen fl_buf len:%d\n",__func__,len);
+
+        if(len <= WT_PROINFO_FACTORYRESETTIME_STRING_LEN){
+            strcpy(buf,fl_buf);
+            printk("%s,lingyuguo mzss123 factory_reset_time read fl_buf:%s, len = %d\n",__func__,buf,len);
+        }
+        return len;
+    }
+	
 	len = strlen(fbuf);
 	printk("%s,read buf len:%d\n",__func__,len);
 
@@ -530,16 +583,21 @@ static int wt_proinfo_write(wt_proinfo_type type, const char* buf, int len)
 {
 	//struct file *fp;
 	int ret = 0;
-	char buf_tmp[WT_PROINFO_STRING_LEN] = {0};
+	char buf_tmp[257] = {0};
 	char buf_imei[WT_PROINFO_IMEI_LEN] = {0};
 	printk("%s\n",__func__);
 	printk("%s,%s len %d\n",__func__,buf,len);
 
 	//max len is WT_PROINFO_STRING_LEN
-	if(len > WT_PROINFO_STRING_LEN)
-		return -1;
-	else
-		memcpy(buf_tmp,buf,len);
+	if(type != WT_PROINFO_remote_lock_value)
+    {
+       if(len > WT_PROINFO_STRING_LEN)
+       return -1;
+    }else{
+     if(len > WT_PROINFO_REMOTE_LOCK_VLAUE_LEN)
+       len = WT_PROINFO_REMOTE_LOCK_VLAUE_LEN;
+    }
+	 memcpy(buf_tmp,buf,len);
 
 	if(buf_tmp[len-1] == '\n')
 		buf_tmp[len-1] = 0x00;
@@ -577,6 +635,29 @@ static int wt_proinfo_write(wt_proinfo_type type, const char* buf, int len)
 			printk("%s write factory[%d] \n", __func__, type);
             ret = emmc_partition_rw("oem", 1, type * SIZE_4K, (char *) buf_tmp, (unsigned long) len);
 			break;
+		case WT_PROINFO_block_fastboot_mode:
+			printk("%s mzss123  write block fastboot mode[%d] \n", __func__, type);
+            ret = emmc_partition_rw("proinfo", 1, 1*MMC_BLOCK_SIZE, (char *) buf_tmp, (unsigned long) len);
+			break;
+		case WT_PROINFO_remote_lock_value:
+            memcpy(temp_buf, buf_tmp, len);
+            ret = emmc_partition_rw("proinfo", 1, 2*MMC_BLOCK_SIZE, temp_buf, (unsigned long) len);
+            if (ret < 0) {
+                printk("%s: mzss123 write bytes to proinfo failed! %d\n", __func__, ret);
+                return -1;
+            }
+
+			break;
+		case WT_PROINFO_factory_reset_time:
+
+            memcpy(temp_buf, buf_tmp, len);
+            ret = emmc_partition_rw("proinfo", 1, 3*MMC_BLOCK_SIZE, temp_buf, (unsigned long) len);
+            if (ret < 0) {
+                printk("%s: mzss123 write bytes to proinfo failed! %d\n", __func__, ret);
+                return -1;
+            }
+
+			break;
 		default:
 			// fp->f_pos = fp->f_pos + type * SIZE_4K;
 			// ret = kernel_write(fp, (char *) buf_tmp, (unsigned long) len, (loff_t) fp->f_pos);
@@ -584,7 +665,7 @@ static int wt_proinfo_write(wt_proinfo_type type, const char* buf, int len)
 			ret = emmc_partition_rw("oem", 1, type * SIZE_4K,
 				(char *)buf_tmp, (unsigned long)len);
 			if (ret < 0) {
-				printk("%s: Read bytes from proinfo failed! %d\n", __func__, ret);
+				printk("%s: mzss123 Read bytes from proinfo failed! %d\n", __func__, ret);
 				//filp_close(fp, NULL);
 				return -1;
 			}
@@ -595,7 +676,7 @@ static int wt_proinfo_write(wt_proinfo_type type, const char* buf, int len)
 		filp_close(fp, NULL);
 	}
 	*/
-	printk("%s,write buf len:%d\n",__func__,ret);
+	printk("%s,mzss123 write buf len:%d\n",__func__,ret);
 
 	return ret;
 }
@@ -662,4 +743,3 @@ module_exit(proinfo_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("wt_modem");
-

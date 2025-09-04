@@ -654,7 +654,9 @@ struct report_info_block {
 #define KEY_GESTURE_W					KEY_W
 #define KEY_GESTURE_S					KEY_S
 #define KEY_GESTURE_V					KEY_V
-#define KEY_GESTURE_C					KEY_C
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/11 start*/
+#define KEY_GESTURE_C					KEY_CAMERA
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/11 end*/
 #define KEY_GESTURE_Z					KEY_Z
 #define KEY_GESTURE_F					KEY_F
 #define GESTURE_V_DOWN                                  0x6C
@@ -682,7 +684,9 @@ struct report_info_block {
 #define ALPHABET_LINE_2_RIGHT                        	( OFF )//BIT4
 #define ALPHABET_M					( OFF )//BIT5
 #define ALPHABET_W					( OFF )//BIT6
-#define ALPHABET_C					( OFF )//BIT7
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/04 start*/
+#define ALPHABET_C					( ON )//BIT7
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/04 end*/
 #define ALPHABET_E					( OFF )//BIT8
 #define ALPHABET_V					( OFF )//BIT9
 #define ALPHABET_O					( OFF)//BIT10

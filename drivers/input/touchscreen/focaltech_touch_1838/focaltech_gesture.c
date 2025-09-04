@@ -51,7 +51,9 @@
 #define KEY_GESTURE_W                           KEY_W
 #define KEY_GESTURE_S                           KEY_S
 #define KEY_GESTURE_V                           KEY_V
-#define KEY_GESTURE_C                           KEY_C
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/11 start*/
+#define KEY_GESTURE_C                           KEY_CAMERA
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/11 end*/
 #define KEY_GESTURE_Z                           KEY_Z
 
 #define GESTURE_LEFT                            0x20
@@ -255,8 +257,14 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
         gesture = KEY_GESTURE_Z;
         break;
     case  GESTURE_C:
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/04 start*/
+#if defined (CONFIG_PRODUCT_DRDOOM)
         gesture = KEY_GESTURE_C;
+#else
+        gesture = -1;
+#endif
         break;
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/04 end*/
     default:
         gesture = -1;
         break;

@@ -617,7 +617,9 @@ struct gesture_symbol {
 #define KEY_GESTURE_W					KEY_W
 #define KEY_GESTURE_S					KEY_S
 #define KEY_GESTURE_V					KEY_V
-#define KEY_GESTURE_C					KEY_C
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/11 start*/
+#define KEY_GESTURE_C					KEY_CAMERA
+/* Huaqin modify for DRD-2806 by gaozhengwei at 2020/12/11 end*/
 #define KEY_GESTURE_Z					KEY_Z
 #define KEY_GESTURE_F					KEY_F
 #define GESTURE_V_DOWN					0x6C

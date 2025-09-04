@@ -250,13 +250,13 @@
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW2_FILE                     "include/firmware/HQ_HMD_FT8615_BOE_6P39_HD_Ver0x07_SPI_20200730_app.i"
+#define FTS_UPGRADE_FW2_FILE                     "include/firmware/HQ_HMD_FT8615_BOE_6P39_HD_Ver0x08_SPI_20201202_app.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 3, fw corrsponding with FTS_VENDOR_ID3
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW3_FILE                     "include/firmware/HQ_HMD_FT8615_BOE_6P39_HD_Ver0x07_SPI_20200730_app.i"
+#define FTS_UPGRADE_FW3_FILE                     "include/firmware/HQ_HMD_FT8615_BOE_6P39_HD_Ver0x08_SPI_20201202_app.i"
 
 /*********************************************************/
 

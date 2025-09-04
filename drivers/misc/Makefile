@@ -79,7 +79,7 @@ obj-$(CONFIG_FPR_FPC)		+= fpr_FingerprintCard/
 #obj-$(CONFIG_OEM_NEW_STANDARD)     += proinfo_new.o oem_new_partition.o
 #obj-$(CONFIG_OEM_OLD_STANDARD)     += proinfo.o
 #obj-y     += proinfo_new.o oem_new_partition.o
-obj-y     += proinfo_rw.o
+obj-y     += proinfo.o
 
 # huaqin added by SunXunou for HMD_ZQL1838 at 20200518 start
 obj-y                           += huaqin/
